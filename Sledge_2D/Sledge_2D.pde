@@ -7,7 +7,7 @@ int pointSpeed = 5; // speed of falling points
 int pointNum = 10; // number of falling points
 int[] pointX = new int[pointNum];
 int[] pointY = new int[pointNum];
-boolean[] pointActive = new boolean[pointNum];
+boolean[] pointActive = new boolean[pointNum]; // test
 
 void setup() {
   frameRate(50);
