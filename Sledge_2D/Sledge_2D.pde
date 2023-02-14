@@ -39,8 +39,8 @@ void draw() {
   } else {
     // If the game is not over, update the game state as usual
     drawPlayer();
-    movePoints();
-    drawPoints();
+    moveTrees();
+    drawTrees();
     checkCollisions();
   }
 }
@@ -50,7 +50,7 @@ void drawPlayer() {
   rect(playerX, playerY, playerWidth, playerHeight);
 }
 
-void movePoints() {
+void moveTrees() {
   for (int i = 0; i < pointNum; i++) {
     pointY[i] += pointSpeed;
     if (pointY[i] > height) {
@@ -61,7 +61,7 @@ void movePoints() {
   }
 }
 
-void drawPoints() {
+void drawTrees() {
   fill(200, 0, 0);
   for (int i = 0; i < pointNum; i++) {
     if (pointActive[i]) {
