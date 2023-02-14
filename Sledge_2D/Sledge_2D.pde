@@ -73,7 +73,9 @@ void drawPoints() {
 void checkCollisions() {
   for (int i = 0; i < pointNum; i++) {
     if (pointActive[i]) {
-      if (pointY[i] + pointSize >= playerY && pointX[i] >= playerX && pointX[i] + pointSize <= playerX + playerWidth) {
+      if (pointY[i] + pointSize >= playerY && 
+          pointX[i] >= playerX && 
+          pointX[i] + pointSize <= playerX + playerWidth) {
         gameOver = true;
       } else if (pointY[i] >= height) {
         pointX[i] = (int) random(width - pointSize);
@@ -83,6 +85,8 @@ void checkCollisions() {
     }
   }
 }
+
+
 
 void keyPressed() {
   if (!gameOver) {  // Only allow player input if game is not over
