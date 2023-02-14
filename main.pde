@@ -63,9 +63,9 @@ void checkCollisions() {
 }
 
 void keyPressed() {
-  if (keyCode == LEFT) {
+  if (keyCode == LEFT | keyCode == 65) {
     playerX -= 20;
-  } else if (keyCode == RIGHT) {
+  } else if (keyCode == RIGHT | keyCode == 68) {
     playerX += 20;
   }
   if (playerX < 0) {
