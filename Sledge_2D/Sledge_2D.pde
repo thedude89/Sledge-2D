@@ -14,6 +14,7 @@ int[] treeY = new int[treeNum];
 boolean[] treeActive = new boolean[treeNum]; 
 boolean gameOver = false;  // Declare global variable to track whether the game is over
 
+
 void setup() {
   frameRate(50);
   size(1000, 600);
