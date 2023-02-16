@@ -19,7 +19,7 @@ void setup() {
   frameRate(50);
   size(1000, 600);
   
-  // Laden des Game Over Bilds
+  // Laden der Bilder
   gameOverImg = loadImage("game_over.png");
   
   for (int i = 0; i < pointNum; i++) {
@@ -65,7 +65,7 @@ void drawTrees() {
   fill(200, 0, 0);
   for (int i = 0; i < pointNum; i++) {
     if (pointActive[i]) {
-      ellipse(pointX[i], pointY[i], pointSize, pointSize);
+      circle(pointX[i], pointY[i], pointSize);
     }
   }
 }
