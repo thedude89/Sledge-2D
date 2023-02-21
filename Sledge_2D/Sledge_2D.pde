@@ -6,7 +6,7 @@ int playerX = 200; // start position of player bar
 int playerY = 450;
 int playerWidth = 50;
 int playerHeight = 10;
-int treeSize = 20; // size of falling trees
+int treeSize = 30; // size of falling trees
 int treeSpeed = 5; // speed of falling trees
 int treeNum = 10; // number of falling trees
 int[] treeX = new int[treeNum];
@@ -31,11 +31,18 @@ void setup() {
 
 void draw() {
   background(255);
-  
+
   if (gameOver) {
     // If the game is over, draw the game over image in the center of the screen
-    image(gameOverImg, 0, 0,width,height);
-    noLoop(); // Stopt den Game Loop
+    image(gameOverImg, 0, 0, width, height);
+    
+    // Draw a restart button in the center of the screen
+    fill(255,0,0);
+    rect(width/2 - 50, height/2 +100, 150, 50);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(32);
+    text("RESTART", width/2 + 25, height/2 +120);
   } else {
     // If the game is not over, update the game state as usual
     drawPlayer();
@@ -73,9 +80,9 @@ void drawTrees() {
 void checkCollisions() {
   for (int i = 0; i < treeNum; i++) {
     if (treeActive[i]) {
-      if (treeY[i] + treeSize >= playerY && 
-          treeX[i] >= playerX && 
-          treeX[i] + treeSize <= playerX + playerWidth) {
+      if (treeActive[i] && treeY[i] + treeSize >= playerY && 
+    treeX[i] <= playerX + playerWidth && 
+    treeX[i] + treeSize >= playerX) {
         gameOver = true;
       } else if (treeY[i] >= height) {
         treeX[i] = (int) random(width - treeSize);
@@ -107,6 +114,20 @@ void keyPressed() {
       playerX = 0;
     } else if (playerX > width - playerWidth) {
       playerX = width - playerWidth;
+    }
+  }
+}
+
+void mousePressed() {
+  if (gameOver && mouseX >= width/2 - 50 && mouseX <= width/2 + 100 && mouseY >= height/2 + 100 && mouseY <= height/2 + 150) {
+    // Reset the game state
+    playerX = 200;
+    playerY = 450;
+    gameOver = false;
+    for (int i = 0; i < treeNum; i++) {
+      treeX[i] = (int) random(width - treeSize);
+      treeY[i] = (int) random(-height, 0);
+      treeActive[i] = true;
     }
   }
 }
