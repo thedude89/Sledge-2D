@@ -1,3 +1,10 @@
+//Imports
+import processing.sound.*;
+SoundFile file, file1, file2;
+
+//Gamestate
+boolean startGame = false;
+
 // Bilder
 PImage gameOverImg, TreeImg, SledImg, CoinImg;
 
@@ -9,28 +16,43 @@ int playerHeight = 32;
 int treeSize = 30; // size of falling trees
 int treeSpeed = 5; // speed of falling trees
 int treeNum = 10; // number of falling trees
+int[] treeX = new int[treeNum];
+int[] treeY = new int[treeNum];
+boolean[] treeActive = new boolean[treeNum];
+boolean gameOver = false;  // Declare global variable to track whether the game is over
 int coinNum = 10;
-int score = 0;
+int score;
 int coinSize = 25;
 int coinX;
 int coinY;
-int[] treeX = new int[treeNum];
-int[] treeY = new int[treeNum];
-boolean[] treeActive = new boolean[treeNum]; 
 boolean coinActive = true;
-boolean gameOver = false;  // Declare global variable to track whether the game is over
-
 
 void setup() {
-  frameRate(50);
+  frameRate(20);
   size(1000, 600);
-  
+
+  // Game schwieriger machen
+  if (score > 20) {
+    // Framerate basierend auf dem Scorewert erhöhen, aber auf 20 bis 120 FPS begrenzen
+    float fps = constrain(50 + score/10, 50, 120);
+    frameRate(fps);
+  }
+
+  //Musik des Spiels
+  file = new SoundFile(this, "dragonball.mp3");
+  file.loop();
+  // Katsching Sound für Coin
+  file1 = new SoundFile(this, "katsching.mp3");
+  //crash sound
+  file2 = new SoundFile(this, "crash.mp3");
+
+
   // Laden der Bilder
   gameOverImg = loadImage("game_over.png");
   TreeImg = loadImage("pine-tree.png");
   SledImg = loadImage("sledge.png");
   CoinImg = loadImage("coin.png");
-  
+
   for (int i = 0; i < treeNum; i++) {
     treeX[i] = (int) random(width - treeSize);
     treeY[i] = (int) random(-height, 0);
@@ -38,24 +60,26 @@ void setup() {
   }
   coinX = (int) random(width - coinSize);
   coinY = (int) random(-height, 0);
-}  
+}
 
 void draw() {
-  background(255);
-  
-  if (gameOver) {
-    // If the game is over, draw the game over image in the center of the screen
-    image(gameOverImg, 0, 0, width, height);
-    
-    // Draw a restart button in the center of the screen
-    fill(255,0,0);
-    rect(width/2 - 50, height/2 +100, 150, 50);
+
+  if (!startGame) {
+    start_bildschirm();
+  }
+  // Musik spielt, nur so lange Spiel nicht gestartet ist
+  else {
+    file.stop();
+  }
+
+
+  if (!gameOver && startGame) {
+    // If the game is not over and start button is clicked, update the game state as usual
+    // Bildschirm jedes mal übermalen, um die Spur zu verwischen
     fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    text("RESTART", width/2 + 25, height/2 +120);
-  } else {
-    // If the game is not over, update the game state as usual
+    noStroke(); // Kein Rand um das Rechteck zeichnen
+    rect(0, 0, width * 2, height*2);
+    // Game Methods
     drawPlayer();
     moveTrees();
     drawTrees();
@@ -64,7 +88,71 @@ void draw() {
     checkCoinCollision();
     drawScore();
   }
+
+  if (gameOver) {
+    // If the game is over, draw the game over image in the center of the screen
+    image(gameOverImg, 0, 0, width, height);
+
+    // Draw a restart button in the center of the screen
+    fill(255, 0, 0);
+    rect(width/2 + 25, height/2 +120, 150, 50);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(32);
+    text("RESTART", width/2 + 25, height/2 +120);
+  }
 }
+
+void start_bildschirm() {
+  // Landschaft
+  int snowColor = #FFFFFF;
+  int treeColor = #2E8B57;
+  int skyColor = #87CEEB;
+
+  // Himmel
+  background(skyColor);
+
+  // Schnee
+  noStroke();
+  fill(snowColor);
+  for (int i = 0; i < 200; i++) {
+    int x = int(random(width));
+    int y = int(random(height));
+    ellipse(x, y, 5, 5);
+  }
+
+  // Bäume
+  fill(treeColor);
+  for (int i = 0; i < 10; i++) {
+    int x = int(random(width));
+    int y = int(random(height/2, height-50));
+    int size = int(random(30, 50));
+    triangle(x, y, x-size/2, y+size, x+size/2, y+size);
+  }
+
+  // Start Button
+  rectMode(CENTER);
+  fill(255, 0, 0);
+  rect(width/2, height/2, 150, 50);
+  fill(255);
+  textSize(20);
+  textAlign(CENTER, CENTER);
+  text("Spiel starten", width/2, height/2);
+  // Titel vom Game
+  textSize(75);
+  fill(0);
+  text("SLEDGE 2D", width/2, height/10);
+
+  if (mousePressed && mouseX > width/2 - 75 && mouseX < width/2 + 75 &&
+    mouseY > height/2 - 25 && mouseY < height/2 + 25) {
+    startGame = true;
+    fill(255);
+    noStroke(); // Kein Rand um das Rechteck zeichnen
+    rect(0, 0, width * 2, height*2);
+  }
+}
+
+
 
 void drawPlayer() {
   image(SledImg, playerX, playerY, playerWidth, playerHeight);
@@ -72,6 +160,7 @@ void drawPlayer() {
 }
 
 void moveTrees() {
+  frameRate(50);
   for (int i = 0; i < treeNum; i++) {
     treeY[i] += treeSpeed;
     if (treeY[i] > height) {
@@ -80,9 +169,8 @@ void moveTrees() {
       treeActive[i] = true;
     }
   }
-  
   coinY += treeSpeed; // Move the coin along with the trees
-  if(coinY > height){
+  if (coinY > height) {
     coinX = (int) random(width - coinSize);
     coinY = (int) random(-height, 0);
     coinActive = true;
@@ -93,14 +181,13 @@ void drawTrees() {
   for (int i = 0; i < treeNum; i++) {
     if (treeActive[i]) {
       image(TreeImg, treeX[i], treeY[i], treeSize, treeSize);
-      // <a href="https://www.flaticon.com/free-icons/christmas-tree" title="christmas tree icons">Christmas tree icons created by Freepik - Flaticon</a>
     }
   }
 }
 
-void drawCoin() { 
+void drawCoin() {
   for (int i = 0; i < coinNum; i++) {
-    if(coinActive == true) {
+    if (coinActive == true) {
       image(CoinImg, coinX, coinY, coinSize, coinSize);
     }
   }
@@ -109,14 +196,15 @@ void drawCoin() {
 void checkCollisions() {
   for (int i = 0; i < treeNum; i++) {
     if (treeActive[i]) {
-      if (treeActive[i] && treeY[i] + treeSize >= playerY && 
-    treeX[i] <= playerX + playerWidth && 
-    treeX[i] + treeSize >= playerX) {
-        gameOver = true;
-      } else if (treeY[i] >= height) {
-        treeX[i] = (int) random(width - treeSize);
-        treeY[i] = (int) random(-height, 0);
-        treeActive[i] = true;
+      // Calculate the bottom edge of the tree
+      int treeBottom = treeY[i] + treeSize;
+      
+      // Check for collision with the player only if the tree is not fully passed
+      if (treeBottom > playerY) {
+        if (dist(playerX, playerY, treeX[i] + treeSize/2, treeY[i] + treeSize/2) < playerWidth/2 + treeSize/2) {
+          gameOver = true;
+          file2.play();
+        }
       }
     }
   }
@@ -129,7 +217,9 @@ void checkCoinCollision() {
     float distance = dist(playerX + playerRadius, playerY + playerRadius, coinX + coinRadius, coinY + coinRadius);
     if (distance < coinRadius + playerRadius) {
       coinActive = false;
-      score += 10;
+      score += (10 + int(frameRate/10));
+      // Sound für Coin spielen lassen
+      file1.play();
     }
   }
 }
@@ -140,6 +230,7 @@ void drawScore() {
   textSize(20);
   text("SCORE: " + score, 20, 30);
 }
+
 
 void keyPressed() {
   if (!gameOver) {  // Only allow player input if game is not over
@@ -158,6 +249,7 @@ void keyPressed() {
         }
       }
     }
+
     if (playerX < 0) {
       playerX = 0;
     } else if (playerX > width - playerWidth) {
