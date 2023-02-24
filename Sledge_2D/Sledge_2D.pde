@@ -1,42 +1,39 @@
 //Imports
 import processing.sound.*;
+import gifAnimation.*;
 SoundFile file, file1, file2;
+
+// Bilder
+PImage gameOverImg, TreeImg, SledImg, CoinImg, expl1, expl2, expl3;
 
 //Gamestate
 boolean startGame = false;
-
-// Bilder
-PImage gameOverImg, TreeImg, SledImg, CoinImg;
-
 // Anfangs Code
+int gameSpeed = 30;
 int playerX = 200; // start position of player bar
 int playerY = 450;
 int playerWidth = 32;
 int playerHeight = 32;
-int treeSize = 30; // size of falling trees
+int treeSize = 70; // size of falling trees
 int treeSpeed = 5; // speed of falling trees
 int treeNum = 10; // number of falling trees
 int[] treeX = new int[treeNum];
 int[] treeY = new int[treeNum];
 boolean[] treeActive = new boolean[treeNum];
 boolean gameOver = false;  // Declare global variable to track whether the game is over
-int coinNum = 10;
+int coinNum = 50;
 int score;
+int highscore;
 int coinSize = 25;
 int coinX;
 int coinY;
 boolean coinActive = true;
+int distance;
+
 
 void setup() {
-  frameRate(20);
+  frameRate(gameSpeed);
   size(1000, 600);
-
-  // Game schwieriger machen
-  if (score > 20) {
-    // Framerate basierend auf dem Scorewert erhöhen, aber auf 20 bis 120 FPS begrenzen
-    float fps = constrain(50 + score/10, 50, 120);
-    frameRate(fps);
-  }
 
   //Musik des Spiels
   file = new SoundFile(this, "dragonball.mp3");
@@ -46,12 +43,14 @@ void setup() {
   //crash sound
   file2 = new SoundFile(this, "crash.mp3");
 
-
   // Laden der Bilder
   gameOverImg = loadImage("game_over.png");
   TreeImg = loadImage("pine-tree.png");
   SledImg = loadImage("sledge.png");
   CoinImg = loadImage("coin.png");
+  expl1 = loadImage("expl1.jpg");
+  expl2 = loadImage("expl2.jpg");
+  expl3 = loadImage("expl3.jpg");
 
   for (int i = 0; i < treeNum; i++) {
     treeX[i] = (int) random(width - treeSize);
@@ -63,6 +62,12 @@ void setup() {
 }
 
 void draw() {
+  // Game schwieriger machen
+  if (score > 20) {
+    // Framerate basierend auf dem Scorewert erhöhen, aber auf 20 bis 120 FPS begrenzen
+    float fps = constrain(50 + score/10, 50, 120);
+    frameRate(fps);
+  }
 
   if (!startGame) {
     start_bildschirm();
@@ -71,9 +76,8 @@ void draw() {
   else {
     file.stop();
   }
-
-
   if (!gameOver && startGame) {
+    distance +=1;
     // If the game is not over and start button is clicked, update the game state as usual
     // Bildschirm jedes mal übermalen, um die Spur zu verwischen
     fill(255);
@@ -86,7 +90,7 @@ void draw() {
     checkCollisions();
     drawCoin();
     checkCoinCollision();
-    drawScore();
+    drawStats();
   }
 
   if (gameOver) {
@@ -160,7 +164,6 @@ void drawPlayer() {
 }
 
 void moveTrees() {
-  frameRate(50);
   for (int i = 0; i < treeNum; i++) {
     treeY[i] += treeSpeed;
     if (treeY[i] > height) {
@@ -198,10 +201,16 @@ void checkCollisions() {
     if (treeActive[i]) {
       // Calculate the bottom edge of the tree
       int treeBottom = treeY[i] + treeSize;
-      
+
       // Check for collision with the player only if the tree is not fully passed
       if (treeBottom > playerY) {
-        if (dist(playerX, playerY, treeX[i] + treeSize/2, treeY[i] + treeSize/2) < playerWidth/2 + treeSize/2) {
+        // create hitbox for tree
+        if (dist(playerX, playerY, treeX[i] + 2, treeY[i] + treeSize/2) < playerWidth/2 + 10) {
+          // Explosions Animation machen:
+          image(expl1, playerX, playerY, 50, 50);
+          image(expl2, playerX, playerY, 50, 50);
+          image(expl3, playerX, playerY, 50, 50);
+          delay(300);
           gameOver = true;
           file2.play();
         }
@@ -218,17 +227,23 @@ void checkCoinCollision() {
     if (distance < coinRadius + playerRadius) {
       coinActive = false;
       score += (10 + int(frameRate/10));
+      // setzen des highscores
+      if (score >= highscore){
+        highscore = score;
+      }
       // Sound für Coin spielen lassen
       file1.play();
     }
   }
 }
 
-void drawScore() {
+void drawStats() {
   fill(0);
   textAlign(LEFT);
   textSize(20);
   text("SCORE: " + score, 20, 30);
+  text("HIGHSCORE: " + highscore, 20, 60);
+  text("DISTANCE: " + distance, 20, 90);
 }
 
 
@@ -265,6 +280,8 @@ void mousePressed() {
     playerY = 450;
     gameOver = false;
     score = 0;
+    distance = 0;
+    frameRate(gameSpeed);
     for (int i = 0; i < treeNum; i++) {
       treeX[i] = (int) random(width - treeSize);
       treeY[i] = (int) random(-height, 0);
