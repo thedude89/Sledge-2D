@@ -4,7 +4,7 @@ import gifAnimation.*;
 SoundFile file, file1, file2;
 
 // Bilder
-PImage gameOverImg, TreeImg, SledImg, CoinImg, expl1, expl2, expl3;
+PImage gameOverImg, TreeImg, SledImg, CoinImg;
 
 //Gamestate
 boolean startGame = false;
@@ -48,9 +48,6 @@ void setup() {
   TreeImg = loadImage("pine-tree.png");
   SledImg = loadImage("sledge.png");
   CoinImg = loadImage("coin.png");
-  expl1 = loadImage("expl1.jpg");
-  expl2 = loadImage("expl2.jpg");
-  expl3 = loadImage("expl3.jpg");
 
   for (int i = 0; i < treeNum; i++) {
     treeX[i] = (int) random(width - treeSize);
@@ -84,13 +81,14 @@ void draw() {
     noStroke(); // Kein Rand um das Rechteck zeichnen
     rect(0, 0, width * 2, height*2);
     // Game Methods
+    
     drawPlayer();
     moveTrees();
     drawTrees();
     checkCollisions();
     drawCoin();
     checkCoinCollision();
-    drawStats();
+    drawStats();   
   }
 
   if (gameOver) {
@@ -183,7 +181,7 @@ void moveTrees() {
 void drawTrees() {
   for (int i = 0; i < treeNum; i++) {
     if (treeActive[i]) {
-      image(TreeImg, treeX[i], treeY[i], treeSize, treeSize);
+      image(TreeImg, treeX[i]-(TreeImg.width/2), treeY[i] - TreeImg.height, treeSize, treeSize);
     }
   }
 }
@@ -201,16 +199,19 @@ void checkCollisions() {
     if (treeActive[i]) {
       // Calculate the bottom edge of the tree
       int treeBottom = treeY[i] + treeSize;
-
+      
       // Check for collision with the player only if the tree is not fully passed
       if (treeBottom > playerY) {
-        // create hitbox for tree
-        if (dist(playerX, playerY, treeX[i] + 2, treeY[i] + treeSize/2) < playerWidth/2 + 10) {
-          // Explosions Animation machen:
-          image(expl1, playerX, playerY, 50, 50);
-          image(expl2, playerX, playerY, 50, 50);
-          image(expl3, playerX, playerY, 50, 50);
-          delay(300);
+        // Calculate the coordinates of the player's collision point
+        int playerCollisionX = playerX + (SledImg.width / 2);
+        int playerCollisionY = playerY + SledImg.height;
+        
+        // Calculate the coordinates of the tree's collision point
+        int treeCollisionX = treeX[i] + (TreeImg.width / 2);
+        int treeCollisionY = treeY[i] + TreeImg.height;
+        
+        // Check if the collision points overlap
+        if (dist(playerCollisionX, playerCollisionY, treeCollisionX, treeCollisionY) < (SledImg.width / 2) + 3) {
           gameOver = true;
           file2.play();
         }
@@ -218,6 +219,7 @@ void checkCollisions() {
     }
   }
 }
+
 
 void checkCoinCollision() {
   if (coinActive) {
