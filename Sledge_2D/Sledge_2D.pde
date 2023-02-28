@@ -1,41 +1,51 @@
 //Imports
 import processing.sound.*;
-import gifAnimation.*;
+
+//Sounds
 SoundFile file, file1, file2;
 
 // Bilder
 PImage gameOverImg, TreeImg, SledImg, CoinImg;
 
-//Gamestate
+//Schriftart
+PFont Schriftart;
+
+//Variablen
 boolean startGame = false;
-// Anfangs Code
+boolean gameOver = false;  
 int gameSpeed = 30;
-int playerX = 200; // start position of player bar
+int distance;
+int score;
+int highscore;
+//Startposition Spieler
+int playerX = 200;
 int playerY = 450;
+
+// Player 
 int playerWidth = 32;
 int playerHeight = 32;
-int treeSize = 70; // size of falling trees
-int treeSpeed = 5; // speed of falling trees
-int treeNum = 10; // number of falling trees
+
+// Trees
+int treeSize = 70; 
+int treeSpeed = 5; 
+int treeNum = 10; 
 int[] treeX = new int[treeNum];
 int[] treeY = new int[treeNum];
 boolean[] treeActive = new boolean[treeNum];
-boolean gameOver = false;  // Declare global variable to track whether the game is over
+
+// Coins
 int coinNum = 50;
-int score;
-int highscore;
 int coinSize = 25;
 int coinX;
 int coinY;
 boolean coinActive = true;
-int distance;
 
 
 void setup() {
   frameRate(gameSpeed);
   size(1000, 600);
 
-  //Musik des Spiels
+  //Musik des Startbildschirms
   file = new SoundFile(this, "dragonball.mp3");
   file.loop();
   // Katsching Sound für Coin
@@ -43,6 +53,10 @@ void setup() {
   //crash sound
   file2 = new SoundFile(this, "crash.mp3");
 
+  //Schriftart laden
+  Schriftart = createFont("Schriftart.ttf", 50);
+  textFont(Schriftart);
+  
   // Laden der Bilder
   gameOverImg = loadImage("game_over.png");
   TreeImg = loadImage("pine-tree.png");
@@ -59,13 +73,13 @@ void setup() {
 }
 
 void draw() {
-  // Game schwieriger machen
+  // Game schwieriger machen, wenn Score > 20
   if (score > 20) {
-    // Framerate basierend auf dem Scorewert erhöhen, aber auf 20 bis 120 FPS begrenzen
+    // Framerate basierend auf dem Scorewert erhöhen, aber auf 120 FPS begrenzen
     float fps = constrain(50 + score/10, 50, 120);
     frameRate(fps);
   }
-
+  // Startbildschirm
   if (!startGame) {
     start_bildschirm();
   }
@@ -73,40 +87,46 @@ void draw() {
   else {
     file.stop();
   }
+  
+  // Spielt starten
   if (!gameOver && startGame) {
     distance +=1;
-    // If the game is not over and start button is clicked, update the game state as usual
+    
     // Bildschirm jedes mal übermalen, um die Spur zu verwischen
     fill(255);
-    noStroke(); // Kein Rand um das Rechteck zeichnen
+    noStroke(); 
     rect(0, 0, width * 2, height*2);
-    // Game Methods
     
+    // Game Funktionen
     drawPlayer();
     moveTrees();
     drawTrees();
     checkCollisions();
     drawCoin();
     checkCoinCollision();
-    drawStats();   
+    drawStats();
   }
 
   if (gameOver) {
-    // If the game is over, draw the game over image in the center of the screen
-    image(gameOverImg, 0, 0, width, height);
+    // Wenn Game Over, Text anzeigen
+    background(0);
+    textAlign(CENTER, CENTER);
+    textSize(64);
+    fill(255, 0, 0);
+    text("Game Over", width/2, height/2);
 
-    // Draw a restart button in the center of the screen
+    // Restart Button
     fill(255, 0, 0);
     rect(width/2 + 25, height/2 +120, 150, 50);
     fill(255);
     textAlign(CENTER, CENTER);
-    textSize(32);
+    textSize(30);
     text("RESTART", width/2 + 25, height/2 +120);
   }
 }
 
 void start_bildschirm() {
-  // Landschaft
+  // Farben für Startbildschirm
   int snowColor = #FFFFFF;
   int treeColor = #2E8B57;
   int skyColor = #87CEEB;
@@ -140,16 +160,18 @@ void start_bildschirm() {
   textSize(20);
   textAlign(CENTER, CENTER);
   text("Spiel starten", width/2, height/2);
+  
   // Titel vom Game
   textSize(75);
   fill(0);
   text("SLEDGE 2D", width/2, height/10);
 
+  // Button um das Spiel zu starten
   if (mousePressed && mouseX > width/2 - 75 && mouseX < width/2 + 75 &&
     mouseY > height/2 - 25 && mouseY < height/2 + 25) {
     startGame = true;
     fill(255);
-    noStroke(); // Kein Rand um das Rechteck zeichnen
+    noStroke(); 
     rect(0, 0, width * 2, height*2);
   }
 }
@@ -157,28 +179,12 @@ void start_bildschirm() {
 
 
 void drawPlayer() {
+  //Schlitten 
   image(SledImg, playerX, playerY, playerWidth, playerHeight);
-  // <a href="https://www.flaticon.com/free-icons/sledge" title="sledge icons">Sledge icons created by Freepik - Flaticon</a>
-}
-
-void moveTrees() {
-  for (int i = 0; i < treeNum; i++) {
-    treeY[i] += treeSpeed;
-    if (treeY[i] > height) {
-      treeX[i] = (int) random(width - treeSize);
-      treeY[i] = (int) random(-height, 0);
-      treeActive[i] = true;
-    }
-  }
-  coinY += treeSpeed; // Move the coin along with the trees
-  if (coinY > height) {
-    coinX = (int) random(width - coinSize);
-    coinY = (int) random(-height, 0);
-    coinActive = true;
-  }
 }
 
 void drawTrees() {
+  // Baume im Display anzeigen
   for (int i = 0; i < treeNum; i++) {
     if (treeActive[i]) {
       image(TreeImg, treeX[i]-(TreeImg.width/2), treeY[i] - TreeImg.height, treeSize, treeSize);
@@ -187,6 +193,7 @@ void drawTrees() {
 }
 
 void drawCoin() {
+  // Coins auf dem Bildschirm zeigen
   for (int i = 0; i < coinNum; i++) {
     if (coinActive == true) {
       image(CoinImg, coinX, coinY, coinSize, coinSize);
@@ -194,25 +201,51 @@ void drawCoin() {
   }
 }
 
+// Bewegung der Trees nach unten
+void moveTrees() {
+  for (int i = 0; i < treeNum; i++) {
+    // Bewegung des Baums nach unten
+    treeY[i] += treeSpeed;
+    // Wenn der Baum unteren Rand erreicht, dann oben auf neue random Position setzen
+    if (treeY[i] > height) {
+      treeX[i] = (int) random(width - treeSize);
+      treeY[i] = (int) random(-height, 0);
+      treeActive[i] = true;
+    }
+  }
+  // Coin nach unten bewegen
+  coinY += treeSpeed; 
+  // Wenn Coin unteren Rand erreicht, wieder an random Position oben setzen
+  if (coinY > height) {
+    coinX = (int) random(width - coinSize);
+    coinY = (int) random(-height, 0);
+    coinActive = true;
+  }
+}
+
+
+//Kollisionschecker für Baum und Schlitten
 void checkCollisions() {
   for (int i = 0; i < treeNum; i++) {
     if (treeActive[i]) {
-      // Calculate the bottom edge of the tree
+      // Untersten Teil des Baums berechnen
       int treeBottom = treeY[i] + treeSize;
-      
-      // Check for collision with the player only if the tree is not fully passed
+
+      //Kollision nur checken, wenn Spieler nicht am Baum vorbei ist
       if (treeBottom > playerY) {
-        // Calculate the coordinates of the player's collision point
+        // Kollisionspunkt des Spielers berechnen
         int playerCollisionX = playerX + (SledImg.width / 2);
         int playerCollisionY = playerY + SledImg.height;
-        
-        // Calculate the coordinates of the tree's collision point
+
+        // Kollisionspunkt des Baums berechnen
         int treeCollisionX = treeX[i] + (TreeImg.width / 2);
         int treeCollisionY = treeY[i] + TreeImg.height;
-        
-        // Check if the collision points overlap
+
+        // Checken, ob die Kollisionspunkte überlappen
         if (dist(playerCollisionX, playerCollisionY, treeCollisionX, treeCollisionY) < (SledImg.width / 2) + 3) {
           gameOver = true;
+          
+          //crash sound
           file2.play();
         }
       }
@@ -220,7 +253,7 @@ void checkCollisions() {
   }
 }
 
-
+// Kollision vom Coin mit Spieler checken
 void checkCoinCollision() {
   if (coinActive) {
     float coinRadius = coinSize / 2.0;
@@ -229,16 +262,18 @@ void checkCoinCollision() {
     if (distance < coinRadius + playerRadius) {
       coinActive = false;
       score += (10 + int(frameRate/10));
+      
       // setzen des highscores
-      if (score >= highscore){
+      if (score >= highscore) {
         highscore = score;
       }
-      // Sound für Coin spielen lassen
+      // Sound für Coin 
       file1.play();
     }
   }
 }
 
+//Score + Highscore + Distance im Display anzeigen
 void drawStats() {
   fill(0);
   textAlign(LEFT);
@@ -248,25 +283,31 @@ void drawStats() {
   text("DISTANCE: " + distance, 20, 90);
 }
 
-
+//Tastatur Eingabe
 void keyPressed() {
-  if (!gameOver) {  // Only allow player input if game is not over
+  if (!gameOver) {  
+    // linker Key oder a
     if (keyCode == LEFT || keyCode == 65) {
+      //Spieler nach links bewegen
       playerX -= 20;
     } else if (keyCode == RIGHT || keyCode == 68) {
+      //Spieler nach rechts bewegen
       playerX += 20;
     } else if (keyCode == UP || keyCode == 87) {
-      // Add a green triangle at the player's position
+      // Alle trees durchlaufen
       for (int i = 0; i < treeNum; i++) {
+        //Wenn inaktiver Baum: 
         if (!treeActive[i]) {
+          //Auf Position des Spielers setzen
           treeX[i] = playerX + playerWidth/2;
           treeY[i] = playerY - treeSize;
+          //Baum aktivieren
           treeActive[i] = true;
-          break;  // Stop searching for an inactive point
+          break;  
         }
       }
     }
-
+    // Beweegung auf Bildschirm begrenzen
     if (playerX < 0) {
       playerX = 0;
     } else if (playerX > width - playerWidth) {
@@ -277,7 +318,7 @@ void keyPressed() {
 
 void mousePressed() {
   if (gameOver && mouseX >= width/2 - 50 && mouseX <= width/2 + 100 && mouseY >= height/2 + 100 && mouseY <= height/2 + 150) {
-    // Reset the game state
+    // GameStates reset
     playerX = 200;
     playerY = 450;
     gameOver = false;
